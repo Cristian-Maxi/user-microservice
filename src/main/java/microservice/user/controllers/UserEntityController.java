@@ -1,16 +1,19 @@
 package microservice.user.controllers;
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import microservice.user.dtos.ApiResponseDTO;
 import microservice.user.dtos.userDTO.UserEntityRequestDTO;
 import microservice.user.dtos.userDTO.UserEntityResponseDTO;
 import microservice.user.enums.RoleEnum;
 import microservice.user.exceptions.ApplicationException;
+import microservice.user.models.UserEntity;
 import microservice.user.services.UserEntityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Arrays;
 import java.util.List;
@@ -50,5 +53,24 @@ public class UserEntityController {
     public ResponseEntity<ApiResponseDTO<RoleEnum>> getAllRoles() {
         List<RoleEnum> roles = Arrays.asList(RoleEnum.values());
         return ResponseEntity.ok(new ApiResponseDTO<>(true, "Roles disponibles", roles));
+    }
+
+    @GetMapping("/validateUser/{id}")
+    public boolean validateUser(@PathVariable Long id) {
+        boolean userExist = userEntityService.existById(id);
+        if (userExist) {
+            return userExist;
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado");
+        }
+    }
+
+    @GetMapping("/validateUserByEmail/{email}")
+    public Long validateUserByEmail(@PathVariable String email) {
+        try {
+            return userEntityService.findIdByEmail(email);
+        } catch (EntityNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage(), e);
+        }
     }
 }

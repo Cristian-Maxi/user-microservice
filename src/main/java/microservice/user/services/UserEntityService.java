@@ -8,4 +8,6 @@ import java.util.List;
 public interface UserEntityService {
     UserEntityResponseDTO createUser(UserEntityRequestDTO userEntityRequestDTO);
     List<UserEntityResponseDTO> getAll();
+    boolean existById(Long id);
+    Long findIdByEmail(String email);
 }
