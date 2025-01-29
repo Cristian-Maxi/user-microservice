@@ -1,10 +1,12 @@
 package microservice.user.controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import microservice.user.dtos.ApiResponseDTO;
 import microservice.user.dtos.userDTO.UserEntityRequestDTO;
 import microservice.user.dtos.userDTO.UserEntityResponseDTO;
+import microservice.user.dtos.userDTO.UserEntityUpdateDTO;
 import microservice.user.enums.RoleEnum;
 import microservice.user.exceptions.ApplicationException;
 import microservice.user.models.UserEntity;
@@ -33,6 +35,20 @@ public class UserEntityController {
         } catch (ApplicationException e) {
             throw new ApplicationException(" Ha ocurrido un error en el campo " + e.getCampo() + ", Descripcion: "+e.getMessage());
         }
+    }
+
+    @PatchMapping("/update")
+    public ResponseEntity<ApiResponseDTO<UserEntityResponseDTO>> updateUserEntity(@Valid @RequestBody UserEntityUpdateDTO userEntityUpdateDTO) {
+        UserEntityResponseDTO userEntityResponseDTO = userEntityService.update(userEntityUpdateDTO);
+        String message = "Cliente Actualizado";
+        return new ResponseEntity<>(new ApiResponseDTO<>(true, message, userEntityResponseDTO), HttpStatus.OK);
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<?> deleteUserEntity(@PathVariable Long id) {
+        userEntityService.delete(id);
+        String message = "Usuario Eliminado exitosamente";
+        return new ResponseEntity<>(message, HttpStatus.OK);
     }
 
     @GetMapping("/getAll")
