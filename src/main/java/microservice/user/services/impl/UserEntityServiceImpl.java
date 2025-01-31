@@ -13,6 +13,8 @@ import microservice.user.repositories.UserEntityRepository;
 import microservice.user.services.UserEntityService;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import utils.UserRegisteredEvent;
 
@@ -30,25 +32,18 @@ public class UserEntityServiceImpl implements UserEntityService {
     @Autowired
     private AmqpTemplate amqpTemplate;
 
-//    @Override
-//    public UserEntityResponseDTO createUser(UserEntityRequestDTO userEntityRequestDTO) {
-//        if (userEntityRepository.existsByEmail(userEntityRequestDTO.email())) {
-//            throw new ApplicationException("email", "El email ya existe en la base de datos");
-//        }
-//        UserEntity userEntity = userEntityMapper.toEntity(userEntityRequestDTO);
-//        userEntity.setRole(RoleEnum.USER);
-//        userEntityRepository.save(userEntity);
-//        return userEntityMapper.toResponseDTO(userEntity);
-//    }
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Override
     public UserEntityResponseDTO createUser(UserEntityRequestDTO userEntityRequestDTO) {
         if (userEntityRepository.existsByEmail(userEntityRequestDTO.email())) {
             throw new ApplicationException("email", "El email ya existe en la base de datos");
         }
-
+        String encodedPassword = passwordEncoder.encode(userEntityRequestDTO.password());
         UserEntity userEntity = userEntityMapper.toEntity(userEntityRequestDTO);
-        userEntity.setRole(RoleEnum.USER);
+        userEntity.setPassword(encodedPassword);
+        userEntity.setRole(userEntity.getEmail().contains("@admin") ? RoleEnum.ADMIN : RoleEnum.USER);
         userEntityRepository.save(userEntity);
 
         UserRegisteredEvent event = new UserRegisteredEvent(userEntity.getEmail(), userEntity.getUsername());
@@ -88,10 +83,8 @@ public class UserEntityServiceImpl implements UserEntityService {
 
     @Override
     public Long findIdByEmail(String email) {
-        UserEntity userEntity = userEntityRepository.findByEmail(email);
-        if (userEntity == null) {
-            throw new EntityNotFoundException("Usuario con email " + email + " no encontrado.");
-        }
+        UserEntity userEntity = userEntityRepository.findByEmail(email)
+                .orElseThrow(() -> new EntityNotFoundException("Usuario con email " + email + " no encontrado."));
         return userEntity.getId();
     }
 }

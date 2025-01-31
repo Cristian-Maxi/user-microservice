@@ -1,15 +1,12 @@
 package microservice.user.controllers;
 
-import io.swagger.v3.oas.annotations.Operation;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import microservice.user.dtos.ApiResponseDTO;
-import microservice.user.dtos.userDTO.UserEntityRequestDTO;
 import microservice.user.dtos.userDTO.UserEntityResponseDTO;
 import microservice.user.dtos.userDTO.UserEntityUpdateDTO;
 import microservice.user.enums.RoleEnum;
 import microservice.user.exceptions.ApplicationException;
-import microservice.user.models.UserEntity;
 import microservice.user.services.UserEntityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -26,16 +23,6 @@ public class UserEntityController {
 
     @Autowired
     private UserEntityService userEntityService;
-
-    @PostMapping("/create")
-    public ResponseEntity<UserEntityResponseDTO> createUserEntity(@Valid @RequestBody UserEntityRequestDTO userEntityRequestDTO) {
-        try{
-            UserEntityResponseDTO userEntityResponseDTO = userEntityService.createUser(userEntityRequestDTO);
-            return new ResponseEntity<>(userEntityResponseDTO, HttpStatus.CREATED);
-        } catch (ApplicationException e) {
-            throw new ApplicationException(" Ha ocurrido un error en el campo " + e.getCampo() + ", Descripcion: "+e.getMessage());
-        }
-    }
 
     @PatchMapping("/update")
     public ResponseEntity<ApiResponseDTO<UserEntityResponseDTO>> updateUserEntity(@Valid @RequestBody UserEntityUpdateDTO userEntityUpdateDTO) {
